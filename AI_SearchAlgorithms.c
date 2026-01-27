@@ -28,6 +28,14 @@
 void Heuristic_Search(int (*heuristic)(int x, int y))
 {
   struct node *queue[graph_size];
+  int found = 0;
+
+  if (found)
+  {
+     //update path
+     return;
+  }
+  
 
 
       /*

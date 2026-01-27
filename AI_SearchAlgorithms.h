@@ -44,7 +44,8 @@ struct node{
 	int x; //x-axis
 	int y; //y-axis
 	int distance; //the current distance
-	struct node parent; // the parent of the current node
+	struct node *parent; // the parent of the current node
+	struct node *child;
 };
 
 // ***********  GLOBAL DATA  ********************************
