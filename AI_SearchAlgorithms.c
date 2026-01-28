@@ -177,7 +177,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 	int goal = -1;
 	// construct priority queue via minheap, Q for minheap prio queue, d for shortest distances, p for predecessor in shortest path
 	MinHeap *Q = newHeap(graph_size);
-	// keep an array of expanded nodes to fill grid_value - initialize to avoid garbage values
+	// keep an array of expanded nodes to fill - initialize to avoid garbage values
 	struct node expanded_nodes[graph_size];
 	memset(expanded_nodes, 0, sizeof(expanded_nodes));
 	for (int i = 0; i < graph_size; i++)
@@ -245,7 +245,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 		}
 	}
 
-		if (goal == -1)
+	if (goal == -1)
 	{
 		// No path found - just stay at current position
 		Path[0][0] = mouse[0][0];
@@ -282,17 +282,25 @@ int H_cost(int x, int y)
 {
 
 	/*
-	 This function computes and returns the heuristic cost for location x,y.
-	 As discussed in lecture, this means estimating the cost of getting from x,y to the goal.
-	The goal is cheese. Which cheese is up to you.
-	 Whatever you code here, your heuristic must be admissible.
+	   This function computes and returns the heuristic cost for location x,y.
+	   As discussed in lecture, this means estimating the cost of getting from x,y to the goal.
+	   The goal is cheese. Which cheese is up to you.
+	   Whatever you code here, your heuristic must be admissible.
 
-	 Input arguments have the same meaning as in the search() function above.
+	   Input arguments have the same meaning as in the search() function above.
 	*/
+	int min_dist = graph_size; // set as largest val possible
+	int curr = min_dist;
+	for (int chs_idx = 0; chs_idx < 10; chs_idx++)
+	{
+		curr = abs(x - cheese[chs_idx][0]) + abs(y - cheese[chs_idx][1]);
+		if (min_dist > curr)
+		{
+			min_dist = curr;
+		}
+	}
 
-	// manhatten distance from x,y to closest cheese
-
-	return 0;
+	return min_dist;
 }
 
 int H_cost_nokitty(int x, int y)
