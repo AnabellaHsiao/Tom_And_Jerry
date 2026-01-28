@@ -48,7 +48,6 @@ struct node
 	int y;		  // y-axis
 	int distance; // the current distance
 	int predecessor;
-	struct node *parent; // the parent of the current node
 	struct node *child;
 };
 
@@ -105,7 +104,7 @@ struct node extractMin(MinHeap *heap);
  *               0 <= 'id' < heap->capacity
  *               heap->size < heap->capacity
  */
-void insert(MinHeap *heap, int distance, int id, int x, int y, int predecessor, struct node *parent, struct node *child);
+void insert(MinHeap *heap, int distance, int id, int x, int y, int predecessor, struct node *child);
 
 /* Returns priority of the node with ID 'id' in 'heap'.
  * Precondition: 'id' is a valid node ID in 'heap'.

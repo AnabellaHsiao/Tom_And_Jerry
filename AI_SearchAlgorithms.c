@@ -181,7 +181,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 	struct node expanded_nodes[graph_size];
 	// insert starting node into Q starting at mouse start location
 	int id = getIndexFromXY(mouse[0][0], mouse[0][1]);
-	insert(Q, 0, id, mouse[0][0], mouse[0][1], NOTHING, NULL, NULL);
+	insert(Q, 0, id, mouse[0][0], mouse[0][1], NOTHING, NULL);
 	// insert all other nodes into Q with infinite distance
 	for (int i = 0; i < graph_size; i++)
 	{
@@ -189,7 +189,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 		{
 			int x = i % size_X;
 			int y = i / size_Y;
-			insert(Q, INT_MAX, i, x, y, NOTHING, NULL, NULL);
+			insert(Q, INT_MAX, i, x, y, NOTHING, NULL);
 		}
 	}
 	while (Q->size != 0)
@@ -490,7 +490,6 @@ void swap(MinHeap *heap, int index1, int index2)
 		heap->arr[index1].x = heap->arr[index2].x;
 		heap->arr[index1].y = heap->arr[index2].y;
 		heap->arr[index1].predecessor = heap->arr[index2].predecessor;
-		heap->arr[index1].parent = heap->arr[index2].parent;
 		heap->arr[index1].child = heap->arr[index2].child;
 		heap->indexMap[heap->arr[index2].id] = index1;
 		heap->arr[index2].distance = temp.distance;
@@ -498,7 +497,6 @@ void swap(MinHeap *heap, int index1, int index2)
 		heap->arr[index2].x = temp.x;
 		heap->arr[index2].y = temp.y;
 		heap->arr[index2].predecessor = temp.predecessor;
-		heap->arr[index2].parent = temp.parent;
 		heap->arr[index2].child = temp.child;
 		heap->indexMap[temp.id] = index2;
 	}
@@ -692,7 +690,7 @@ struct node extractMin(MinHeap *heap)
  *               0 <= 'id' < heap->capacity
  *               heap->size < heap->capacity
  */
-void insert(MinHeap *heap, int distance, int id, int x, int y, int predecessor, struct node *parent, struct node *child)
+void insert(MinHeap *heap, int distance, int id, int x, int y, int predecessor, struct node *child)
 {
 	struct node newNode;
 	newNode.distance = distance;
@@ -700,14 +698,12 @@ void insert(MinHeap *heap, int distance, int id, int x, int y, int predecessor, 
 	newNode.x = x;
 	newNode.y = y;
 	newNode.predecessor = predecessor;
-	newNode.parent = (struct node *)calloc(1, sizeof(struct node));
-	*newNode.parent = *parent;
-	newNode.child = (struct node *)calloc(1, sizeof(struct node));
-	*newNode.child = *child;
+	newNode.child = child;
 
 	heap->arr[heap->size] = newNode;
 	heap->size++;
 	heap->indexMap[id] = heap->size;
+
 	bubbleUp(heap, heap->size);
 };
 
