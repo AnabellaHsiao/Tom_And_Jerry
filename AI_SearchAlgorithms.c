@@ -27,13 +27,33 @@
 
 void Heuristic_Search(int (*heuristic)(int x, int y))
 {
-  struct node *queue[graph_size];
-  int found = 0;
+  
+
 
   if (found)
   {
      //update path
      return;
+  }
+  //if queue is empty we use mouse as our start loc
+  int idx=mouse[0][0]+mouse[0][1]*32;
+ 
+  for (int i=0;i<4;i++)
+  {
+    
+    if (Graph[idx][i]){
+      //if it's connected
+      //call A* get distance
+      //initialize the node
+      //add to the queue
+      
+      
+
+
+
+    }
+
+
   }
   
 
@@ -54,7 +74,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
        and b) there are loops.
 
        Since each node represents a grid location, each node can be connected to up to 4 neighbours in the
-       top, right, bottom, and left directions respectively:
+       top, right, bottom, and left dirdistancections respectively:
 
            node at (i,j-1)
              ^
@@ -187,7 +207,17 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 
       return;
 }
+struct node *initialization(int x,int y,struct node *parent,int distance){
+  struct node *n = (struct node *)malloc(sizeof(struct node));
+  n->child=NULL;
+  n->parent=parent;
+  n->x=x;
+  n->y=y;
+  n->index = x+y*32;
+  n->distance=distance;
+  return n;
 
+}
 int H_cost(int x, int y)
 {
  

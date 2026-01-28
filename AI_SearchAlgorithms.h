@@ -48,6 +48,7 @@ struct node{
 	struct node *child;
 };
 
+
 // ***********  GLOBAL DATA  ********************************
 struct sprite framebuffer;							// Texture image for display
 struct sprite maze;									// Buffer to hold empty maze
@@ -65,6 +66,8 @@ int s_mode; 										// Search mode  (0 - A*, 1 - A* no-kitty, 2 - MiniMax, 3 -
 int md;												// maximum search depth for MiniMax
 double cattitude;									// Cat smartness factor in [0,1]
 int windowID;										// OpenGL Window ID
+struct node *queue[graph_size];                     //our min queue for path
+int found;
 
 // ***********  FUNCTION HEADER DECLARATIONS ****************
 // Search code functions
@@ -101,6 +104,7 @@ int H_cost(int x, int y);
 int H_cost_nokitty(int x, int y);
 double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheeses, int mouse_loc[1][2], int mode, double (*utility)(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int cats, int cheeses, int depth), int agentId, int depth, int maxDepth, double alpha, double beta);
 double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses, int depth);
+struct node *initialization(int x,int y,struct node *parent,int distance);
 
 #endif
 
