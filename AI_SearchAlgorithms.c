@@ -177,8 +177,14 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 	int goal = -1;
 	// construct priority queue via minheap, Q for minheap prio queue, d for shortest distances, p for predecessor in shortest path
 	MinHeap *Q = newHeap(graph_size);
-	// keep an array of expanded nodes to fill grid_value
+	// keep an array of expanded nodes to fill grid_value - initialize to avoid garbage values
 	struct node expanded_nodes[graph_size];
+	memset(expanded_nodes, 0, sizeof(expanded_nodes));
+	for (int i = 0; i < graph_size; i++)
+	{
+		expanded_nodes[i].predecessor = NOTHING;
+		expanded_nodes[i].child = NULL;
+	}
 	// insert starting node into Q starting at mouse start location
 	int id = getIndexFromXY(mouse[0][0], mouse[0][1]);
 	insert(Q, 0, id, mouse[0][0], mouse[0][1], NOTHING, NULL);
@@ -195,6 +201,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 	while (Q->size != 0)
 	{
 		struct node current = extractMin(Q);
+
 		// add current to expanded nodes
 		expanded_nodes[current.id] = current;
 		// if found goal (cheese), break
@@ -238,6 +245,15 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 		}
 	}
 
+		if (goal == -1)
+	{
+		// No path found - just stay at current position
+		Path[0][0] = mouse[0][0];
+		Path[0][1] = mouse[0][1];
+		deleteHeap(Q);
+		return;
+	}
+
 	// reconstruct path by building linked list from goal to start
 	struct node *iter = &expanded_nodes[goal];
 	while (iter->predecessor != NOTHING)
@@ -258,6 +274,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 		iter = iter->child;
 	}
 
+	deleteHeap(Q);
 	return;
 }
 
@@ -610,7 +627,7 @@ int parentIdx(MinHeap *heap, int nodeIndex)
  */
 bool isValidIndex(MinHeap *heap, int maybeIdx)
 {
-	if (maybeIdx <= heap->size && maybeIdx >= 1)
+	if (maybeIdx < heap->size && maybeIdx >= 0)
 	{
 		return true;
 	}
@@ -650,7 +667,7 @@ int idAt(MinHeap *heap, int nodeIndex)
  */
 int indexOf(MinHeap *heap, int id)
 {
-	for (int i = 1; i <= heap->size; i++)
+	for (int i = 0; i < heap->size; i++)
 	{
 		if ((heap->arr[i]).id == id)
 		{
@@ -678,9 +695,10 @@ struct node getMin(MinHeap *heap)
 struct node extractMin(MinHeap *heap)
 {
 	struct node min = getMin(heap);
-	swap(heap, ROOT_INDEX, heap->size);
-	heap->indexMap[min.id] = NOTHING;
+	// Swap root with last element BEFORE decrementing size
+	swap(heap, ROOT_INDEX, heap->size - 1);
 	heap->size--;
+	heap->indexMap[min.id] = NOTHING;
 	bubbleDown(heap);
 	return min;
 };
@@ -700,11 +718,12 @@ void insert(MinHeap *heap, int distance, int id, int x, int y, int predecessor, 
 	newNode.predecessor = predecessor;
 	newNode.child = child;
 
-	heap->arr[heap->size] = newNode;
+	int insertIndex = heap->size;
+	heap->arr[insertIndex] = newNode;
+	heap->indexMap[id] = insertIndex;
 	heap->size++;
-	heap->indexMap[id] = heap->size;
 
-	bubbleUp(heap, heap->size);
+	bubbleUp(heap, insertIndex);
 };
 
 /* Sets priority of node with ID 'id' in minheap 'heap' to 'newPriority', if
