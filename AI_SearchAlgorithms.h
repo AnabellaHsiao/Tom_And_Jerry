@@ -163,5 +163,6 @@ int H_cost(int x, int y);
 int H_cost_nokitty(int x, int y);
 double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheeses, int mouse_loc[1][2], int mode, double (*utility)(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int cats, int cheeses, int depth), int agentId, int depth, int maxDepth, double alpha, double beta);
 double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses, int depth);
+struct node *initialization(int x,int y,struct node *parent,int distance);
 
 #endif

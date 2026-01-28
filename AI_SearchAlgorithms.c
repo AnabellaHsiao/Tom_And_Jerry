@@ -289,6 +289,8 @@ int H_cost(int x, int y)
 
 	   Input arguments have the same meaning as in the search() function above.
 	*/
+
+	// manhatten distance from x,y to closest cheese
 	int min_dist = graph_size; // set as largest val possible
 	int curr = min_dist;
 	for (int chs_idx = 0; chs_idx < 10; chs_idx++)
