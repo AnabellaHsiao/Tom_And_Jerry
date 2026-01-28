@@ -175,6 +175,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 	 ********************************************************************************************************/
 
 	int goal = -1;
+	int grid_counter = 0;
 	// construct priority queue via minheap, Q for minheap prio queue, d for shortest distances, p for predecessor in shortest path
 	MinHeap *Q = newHeap(graph_size);
 	// keep an array of expanded nodes to fill - initialize to avoid garbage values
@@ -204,6 +205,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 
 		// add current to expanded nodes
 		expanded_nodes[current.id] = current;
+		grid_value[current.x][current.y] = grid_counter++;
 		// if found goal (cheese), break
 		if (checkForCheese(current.x, current.y))
 		{
