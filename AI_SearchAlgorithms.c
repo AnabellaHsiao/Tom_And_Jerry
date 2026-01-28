@@ -236,7 +236,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 					neighbor_x -= 1;
 				}
 				int neighbor_id = getIndexFromXY(neighbor_x, neighbor_y);
-				int tentative_distance = current.distance + 1 + H_cost(neighbor_x, neighbor_y);
+				int tentative_distance = current.distance + 1 + heuristic(neighbor_x, neighbor_y);
 				if (decreaseDistance(Q, neighbor_id, tentative_distance))
 				{
 					// update predecessor/parent
@@ -307,6 +307,50 @@ int H_cost(int x, int y)
 	return min_dist;
 }
 
+// manhatten distance helper function
+double manhatten_distance(int x1, int y1, int x2, int y2)
+{
+	return abs(x1 - x2) + abs(y1 - y2);
+}
+
+// euclidean distance helper function
+double euclidean_distance(int x1, int y1, int x2, int y2)
+{
+	return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+}
+
+// closest cat to (x,y)
+double closest_cat_distance(int x, int y)
+{
+	double min_dist = size_X + size_Y; // set as largest val possible
+	double curr = min_dist;
+	for (int cat_idx = 0; cat_idx < n_cats; cat_idx++)
+	{
+		curr = manhatten_distance(x, y, cats[cat_idx][0], cats[cat_idx][1]);
+		if (min_dist > curr)
+		{
+			min_dist = curr;
+		}
+	}
+	return min_dist;
+}
+
+// closest cheese to (x,y)
+double closest_cheese_distance(int x, int y)
+{
+	double min_dist = size_X + size_Y; // set as largest val possible
+	double curr = min_dist;
+	for (int chs_idx = 0; chs_idx < n_cheese; chs_idx++)
+	{
+		curr = manhatten_distance(x, y, cheese[chs_idx][0], cheese[chs_idx][1]);
+		if (min_dist > curr)
+		{
+			min_dist = curr;
+		}
+	}
+	return min_dist;
+}
+
 int H_cost_nokitty(int x, int y)
 {
 	/*
@@ -324,7 +368,18 @@ int H_cost_nokitty(int x, int y)
 	 Input arguments have the same meaning as in the search() function above.
 	*/
 
-	return 0;
+	double dist_to_closest_cheese = closest_cheese_distance(x, y);
+	double dist_to_closest_cat = closest_cat_distance(x, y);
+
+	// if dist to cat is closer than dist to cheese, add penalty to heuristic
+	int penalty = 0;
+	if (dist_to_closest_cat < dist_to_closest_cheese)
+	{
+		// closer cat = higher penalty, might need to increase from 80 for smarter cats
+		penalty = (int)(80.0 / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
+	}
+
+	return (int)dist_to_closest_cheese + penalty;
 }
 
 double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheeses, int mouse_loc[1][2], int mode, double (*utility)(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int cats, int cheeses, int depth), int agentId, int depth, int maxDepth, double alpha, double beta)
