@@ -46,6 +46,14 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
       //call A* get distance
       //initialize the node
       //add to the queue
+     
+
+
+
+      
+
+
+
       
       
 
@@ -229,8 +237,19 @@ int H_cost(int x, int y)
 
 	Input arguments have the same meaning as in the search() function above.
  */
+  int min_dist=graph_size; //set as largest val possible
+  int curr=min_dist;
+  for(int chs_idx=0;chs_idx<10;chs_idx++)
+  {
+    curr=abs(x-cheese[chs_idx][0])-abs(y-cheese[chs_idx][1]);
+    if (min_dist>curr){
+      min_dist=curr;
 
- return 0;
+    }
+
+  }
+
+    return min_dist;
 }
 
 int H_cost_nokitty(int x, int y)
