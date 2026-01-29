@@ -24,7 +24,7 @@
 #define ROOT_INDEX 0
 #define NOTHING -1
 #define INT_MAX 10000
-#define CATVOIDANCE 100
+#define CATVOIDANCE 1000
 #define EDGEPENALTY 20
 /*************************************************************************
  * Functions you have to complete for this assignment start below
@@ -392,27 +392,43 @@ int H_cost_nokitty(int x, int y)
 	 Input arguments have the same meaning as in the search() function above.
 	*/
 
+	// double dist_to_closest_cheese = closest_cheese_distance(x, y);
+	// double dist_to_closest_cat = closest_cat_distance(x, y);
+
+	// double cheese_score = cheese_distance_sum(x, y);
+	// double cat_score = cheese_score + cat_distance_sum(x, y);
+
+	// // if dist to cat is closer than dist to cheese, add penalty to heuristic
+	// int penalty = 0;
+	// if (dist_to_closest_cat < dist_to_closest_cheese)
+	// {
+	// 	// closer cat = higher penalty, might need to increase from 80 for smarter cats
+	// 	penalty = (int)(CATVOIDANCE / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
+	// }
+
+	// // add penalty proportional to closeness to edge of map, to avoid getting cornered
+	// penalty += (int)(EDGEPENALTY / (fmin(fmin(x, size_X - x - 1), fmin(y, size_Y - y - 1)) + 1));
+
+	// printf("Cheese dist: %.2f, Cat dist: %.2f, Penalty: %d\n", dist_to_closest_cheese, dist_to_closest_cat, penalty);
+	// // print cheese and cat score
+	// printf("Cheese score: %.2f, Cat score: %.2f, Penalty: %d\n", cheese_score, cat_score, penalty);
+	// return dist_to_closest_cheese + penalty;
+
+	// older version simpler
+	printf("Calculating H_cost_nokitty for (%d, %d)\n", x, y);
 	double dist_to_closest_cheese = closest_cheese_distance(x, y);
 	double dist_to_closest_cat = closest_cat_distance(x, y);
-
-	double cheese_score = cheese_distance_sum(x, y);
-	double cat_score = cheese_score + cat_distance_sum(x, y);
 
 	// if dist to cat is closer than dist to cheese, add penalty to heuristic
 	int penalty = 0;
 	if (dist_to_closest_cat < dist_to_closest_cheese)
 	{
 		// closer cat = higher penalty, might need to increase from 80 for smarter cats
-		penalty = (int)(CATVOIDANCE / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
+		penalty = (int)(10000.0 / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
 	}
-
-	// add penalty proportional to closeness to edge of map, to avoid getting cornered
-	penalty += (int)(EDGEPENALTY / (fmin(fmin(x, size_X - x - 1), fmin(y, size_Y - y - 1)) + 1));
-
 	printf("Cheese dist: %.2f, Cat dist: %.2f, Penalty: %d\n", dist_to_closest_cheese, dist_to_closest_cat, penalty);
-	// print cheese and cat score
-	printf("Cheese score: %.2f, Cat score: %.2f, Penalty: %d\n", cheese_score, cat_score, penalty);
-	return dist_to_closest_cheese + penalty;
+
+	return (int)dist_to_closest_cheese + penalty;
 }
 
 double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheeses, int mouse_loc[1][2], int mode, double (*utility)(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int cats, int cheeses, int depth), int agentId, int depth, int maxDepth, double alpha, double beta)
@@ -439,7 +455,7 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 
 		  This function *must check* whether:
 		 * A candidate move results in a terminal configuration (cat eats mouse, mouse eats cheese)
-		   at which point it calls the utility function to get a value
+		   at which point it calls the utility funceefvtion to get a value
 		 * Maximum search depth has been reached (depth==maxDepth), at which point it will also call
 		   the utility function to get a value
 		 * Otherwise, evaluate possible moves at this level, and for each of these, figure out the
@@ -468,7 +484,6 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 	   cheese_loc[10][2], cheeses - Location and number of cheese chunks (again at most 10,
 				  but possibly fewer). Valid locations are 0 to (cheeses-1)
 	   mouse_loc[1][2] - Mouse location - there can be only one!
-	   mode - Search mode selection:
 			 mode = 0 	- No alpha-beta pruning
 			 mode = 1	- Alpha-beta pruning
 
@@ -552,9 +567,147 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 
 	// Stub so that the code compiles/runs - This will be removed and replaced by your code!
 
-	Path[0][0] = mouse_loc[0][0];
-	Path[0][1] = mouse_loc[0][1];
-	return (0.0);
+	// mouse min, cat max
+
+	// if terminal state or max depth reached, return utility score
+	if (depth == maxDepth)
+	{
+		double util = utility(cat_loc, cheese_loc, mouse_loc, ncats, ncheeses, depth);
+		printf("Reached max depth %d, utility: %.2f\n", depth, util);
+		return util;
+	}
+
+	// check for terminal state: mouse eats a cheese, no more cheeses, cat eats mouse
+	if (checkForTerminalState(cat_loc, cheese_loc, mouse_loc, ncats, ncheeses))
+	{
+		double util = utility(cat_loc, cheese_loc, mouse_loc, ncats, ncheeses, depth);
+		printf("Reached terminal state at depth %d, utility: %.2f\n", depth, util);
+		return util;
+	}
+
+	// if agentId is mouse, return min of minimax(depth+1, each possible mouse move)
+	if (agentId == 0)
+	{
+		double min_util = 100000.0;
+		// for each possible mouse move
+		for (int direction = 0; direction < 4; direction++)
+		{
+			int mouse_x = mouse_loc[0][0];
+			int mouse_y = mouse_loc[0][1];
+			if (Graph[getIndexFromXY(mouse_x, mouse_y)][direction] == 1)
+			{
+				// valid move
+				if (direction == 0)
+				{
+					mouse_y -= 1;
+				}
+				else if (direction == 1)
+				{
+					mouse_x += 1;
+				}
+				else if (direction == 2)
+				{
+					mouse_y += 1;
+				}
+				else if (direction == 3)
+				{
+					mouse_x -= 1;
+				}
+				int new_mouse_loc[1][2] = {{mouse_x, mouse_y}};
+				double util = MiniMax(cat_loc, ncats, cheese_loc, ncheeses, new_mouse_loc, mode, utility, 1, depth + 1, maxDepth, alpha, beta);
+				if (util < min_util)
+				{
+					min_util = util;
+					// at top level, update Path with next move
+					if (depth == 0)
+					{
+						Path[depth][0] = mouse_x;
+						Path[depth][1] = mouse_y;
+					}
+				}
+				// alpha-beta pruning
+				if (mode == 1)
+				{
+					if (min_util < beta)
+					{
+						beta = min_util;
+					}
+					if (beta <= alpha)
+					{
+						break; // beta cut-off
+					}
+				}
+			}
+		}
+		// update grid_values for mouse
+		if (agentId == 0)
+		{
+			grid_value[mouse_loc[0][0]][mouse_loc[0][1]] = min_util;
+		}
+		return min_util;
+	}
+
+	// if agentId is cat, return max utility of all possible cat moves (minimax(depth+1, each possible cat move))
+	if (agentId >= 1 && agentId <= ncats)
+	{
+		double max_util = -100000.0;
+		int cat_idx = agentId - 1;
+		// for each possible cat move
+		for (int direction = 0; direction < 4; direction++)
+		{
+			int cat_x = cat_loc[cat_idx][0];
+			int cat_y = cat_loc[cat_idx][1];
+			if (Graph[getIndexFromXY(cat_x, cat_y)][direction] == 1)
+			{
+				// valid move
+				if (direction == 0)
+				{
+					cat_y -= 1;
+				}
+				else if (direction == 1)
+				{
+					cat_x += 1;
+				}
+				else if (direction == 2)
+				{
+					cat_y += 1;
+				}
+				else if (direction == 3)
+				{
+					cat_x -= 1;
+				}
+				int new_cat_loc[10][2];
+				new_cat_loc[cat_idx][0] = cat_x;
+				new_cat_loc[cat_idx][1] = cat_y;
+				int next_agentId = (agentId % (ncats + 1)); // next agent
+				double util = MiniMax(new_cat_loc, ncats, cheese_loc, ncheeses, mouse_loc, mode, utility, next_agentId, depth + 1, maxDepth, alpha, beta);
+				if (util > max_util)
+				{
+					max_util = util;
+				}
+				// alpha-beta pruning
+				if (mode == 1)
+				{
+					if (max_util > alpha)
+					{
+						alpha = max_util;
+					}
+					if (beta <= alpha)
+					{
+						break; // alpha cut-off
+					}
+				}
+			}
+		}
+		return max_util;
+	}
+
+	printf("Error in MiniMax: invalid agentId %d\n", agentId);
+	return 0;
+
+	// Path[0][0] = mouse_loc[0][0];
+	// Path[0][1] = mouse_loc[0][1];
+	// return (0.0);
 }
 
 double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses, int depth)
@@ -584,6 +737,29 @@ double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], i
 }
 
 // Helper functions
+
+// Checks for terminal state
+bool checkForTerminalState(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses)
+{
+
+	// check if cat eats mouse
+	for (int cat_idx = 0; cat_idx < ncats; cat_idx++)
+	{
+		if (mouse_loc[0][0] == cat_loc[cat_idx][0] && mouse_loc[0][1] == cat_loc[cat_idx][1])
+		{
+			return true;
+		}
+	}
+	// check if mouse eats cheese
+	for (int chs_idx = 0; chs_idx < ncheeses; chs_idx++)
+	{
+		if (mouse_loc[0][0] == cheese_loc[chs_idx][0] && mouse_loc[0][1] == cheese_loc[chs_idx][1])
+		{
+			return true;
+		}
+	}
+	return false;
+};
 
 // This gets index of graph from x,y coordinates
 int getIndexFromXY(int x, int y)
