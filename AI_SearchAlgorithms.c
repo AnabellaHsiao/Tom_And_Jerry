@@ -24,6 +24,8 @@
 #define ROOT_INDEX 0
 #define NOTHING -1
 #define INT_MAX 10000
+#define CATVOIDANCE 100
+#define EDGEPENALTY 20
 /*************************************************************************
  * Functions you have to complete for this assignment start below
  * this commend block
@@ -351,6 +353,28 @@ double closest_cheese_distance(int x, int y)
 	return min_dist;
 }
 
+// cheese score of (x,y)
+double cheese_distance_sum(int x, int y)
+{
+	double sum = 0;
+	for (int chs_idx = 0; chs_idx < n_cheese; chs_idx++)
+	{
+		sum += n_cheese / (manhatten_distance(x, y, cheese[chs_idx][0], cheese[chs_idx][1]) + 1);
+	}
+	return sum;
+}
+
+// cat score of (x,y)
+double cat_distance_sum(int x, int y)
+{
+	double sum = 0;
+	for (int cat_idx = 0; cat_idx < n_cats; cat_idx++)
+	{
+		sum += n_cats / (manhatten_distance(x, y, cats[cat_idx][0], cats[cat_idx][1]) + 1);
+	}
+	return sum;
+}
+
 int H_cost_nokitty(int x, int y)
 {
 	/*
@@ -371,15 +395,24 @@ int H_cost_nokitty(int x, int y)
 	double dist_to_closest_cheese = closest_cheese_distance(x, y);
 	double dist_to_closest_cat = closest_cat_distance(x, y);
 
+	double cheese_score = cheese_distance_sum(x, y);
+	double cat_score = cheese_score + cat_distance_sum(x, y);
+
 	// if dist to cat is closer than dist to cheese, add penalty to heuristic
 	int penalty = 0;
 	if (dist_to_closest_cat < dist_to_closest_cheese)
 	{
 		// closer cat = higher penalty, might need to increase from 80 for smarter cats
-		penalty = (int)(80.0 / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
+		penalty = (int)(CATVOIDANCE / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
 	}
 
-	return (int)dist_to_closest_cheese + penalty;
+	// add penalty proportional to closeness to edge of map, to avoid getting cornered
+	penalty += (int)(EDGEPENALTY / (fmin(fmin(x, size_X - x - 1), fmin(y, size_Y - y - 1)) + 1));
+
+	printf("Cheese dist: %.2f, Cat dist: %.2f, Penalty: %d\n", dist_to_closest_cheese, dist_to_closest_cat, penalty);
+	// print cheese and cat score
+	printf("Cheese score: %.2f, Cat score: %.2f, Penalty: %d\n", cheese_score, cat_score, penalty);
+	return dist_to_closest_cheese + penalty;
 }
 
 double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheeses, int mouse_loc[1][2], int mode, double (*utility)(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int cats, int cheeses, int depth), int agentId, int depth, int maxDepth, double alpha, double beta)
