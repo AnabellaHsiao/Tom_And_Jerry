@@ -733,7 +733,24 @@ double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], i
 	   These arguments are as described in A1. Do have a look at your solution!
 	*/
 
-	return 0; // <-- Evidently you will need to update this.
+	// basic utility: if cat eats mouse, return positive large value, if mouse eats cheese, return negative large value
+	for (int cat_idx = 0; cat_idx < ncats; cat_idx++)
+	{
+		if (mouse_loc[0][0] == cat_loc[cat_idx][0] && mouse_loc[0][1] == cat_loc[cat_idx][1])
+		{
+			return 1000; // cat eats mouse, bad for mouse(max for cat)
+		}
+	}
+	for (int chs_idx = 0; chs_idx < ncheeses; chs_idx++)
+	{
+		if (mouse_loc[0][0] == cheese_loc[chs_idx][0] && mouse_loc[0][1] == cheese_loc[chs_idx][1])
+		{
+			return -1000; // mouse eats cheese, good for mouse(min)
+		}
+	}
+	return 0; // neutral state
+
+	// return 0; // <-- Evidently you will need to update this.
 }
 
 // Helper functions
