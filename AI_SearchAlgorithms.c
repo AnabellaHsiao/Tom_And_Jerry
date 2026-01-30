@@ -25,8 +25,9 @@
 #define NOTHING -1
 #define INT_MAX 10000
 #define CATVOIDANCE 1000
-#define CHEESEATTRACTION 2
+#define CHEESEATTRACTION 1
 #define EDGEPENALTY 20
+#define AHHHH 2
 /*************************************************************************
  * Functions you have to complete for this assignment start below
  * this commend block
@@ -501,11 +502,11 @@ int H_cost_nokitty(int x, int y)
 	int closest_cat = closest_cat_index(mouse[0][0], mouse[0][1]);
 	double dist_from_catline = dist_from_line(mouse[0][0], mouse[0][1], cats[closest_cat][0], cats[closest_cat][1], x, y);
 	double penalty = 0;
-
-	// only add penalty if mouse is within 10 units of nearest cat
-	if (closest_cat_distance(x, y) < 10)
+	// penalty = CATVOIDANCE / (dist_from_catline + 1); // +1 to avoid div by 0
+	//  only add penalty if mouse is within AHHHH units of nearest cat
+	if (closest_cat_distance(x, y) < AHHHH)
 	{
-		penalty = CATVOIDANCE / (dist_from_catline + 1); // +1 to avoid div by 0
+		penalty = CATVOIDANCE;
 	}
 
 	printf("Dist from cheese line: %.2f, Dist from cat line: %.2f\n, Dist from closest cat: %.2f, Dist from closest cheese: %.2f", dist_from_cheeseline, dist_from_catline, closest_cat_distance(x, y), closest_cheese_distance(x, y));
