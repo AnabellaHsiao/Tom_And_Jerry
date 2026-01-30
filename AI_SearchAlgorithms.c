@@ -377,7 +377,7 @@ double cat_distance_sum(int x, int y)
 	return sum;
 }
 
-// find the cheese index of the closest cheese to (x,y)
+// find the cheese index of the closest cheese to mouse
 int closest_cheese_index(int x, int y)
 {
 	double min_dist = size_X + size_Y; // set as largest val possible
@@ -413,12 +413,20 @@ int closest_cat_index(int x, int y)
 	return index;
 }
 
+//
+
 // give x1,y1, x2,y2, x3,y3, create a line from x1,y1 to x2,y2 then get the distance of x3,y3 to the closest point on the line
 double dist_from_line(int x1, int y1, int x2, int y2, int x3, int y3)
 {
 	// check that x3,y3 is between x1,y1 and x2,y2, otherwise assign same value as corner
 	if ((x3 <= fmin(x1, x2)) || (x3 >= fmax(x1, x2)) || (y3 <= fmin(y1, y2)) || (y3 >= fmax(y1, y2)))
 	{
+		// handle vertical line case
+		if (x2 - x1 == 0)
+		{
+			// calculate distance from (x1,y2) to the closest point on the line from (x1,y1) to (x2,y2) and return it
+			return 1 + fabs(x3 - x1);
+		}
 		// calculate distance from (x2,y1) to the closest point on the line from (x1,y1) to (x2,y2) and return it
 		//  get slope of line and intercept
 		double m = (double)(y2 - y1) / (double)(x2 - x1);
@@ -433,6 +441,11 @@ double dist_from_line(int x1, int y1, int x2, int y2, int x3, int y3)
 		return dist; // not between, return max (dist of corner)
 	}
 
+	// handle vertical line case
+	if (x2 - x1 == 0)
+	{
+		return fabs(x3 - x1);
+	}
 	// get slope of line and intercept
 	double m = (double)(y2 - y1) / (double)(x2 - x1);
 	double b = y1 - m * x1;
@@ -443,14 +456,6 @@ double dist_from_line(int x1, int y1, int x2, int y2, int x3, int y3)
 	// get the shortest distance from point x3,y3 to line
 	double dist = fabs(A * x3 + B * y3 + C) / sqrt(A * A + B * B);
 	return dist;
-
-	// AI came up with this, i think its right actually i did more steps for no reason
-	// double A = y2 - y1;
-	// double B = x1 - x2;
-	// double C = x2 * y1 - x1 * y2;
-
-	// double dist = fabs(A * x3 + B * y3 + C) / sqrt(A * A + B * B);
-	// return dist;
 }
 
 int H_cost_nokitty(int x, int y)
@@ -503,16 +508,29 @@ int H_cost_nokitty(int x, int y)
 	double dist_from_catline = dist_from_line(mouse[0][0], mouse[0][1], cats[closest_cat][0], cats[closest_cat][1], x, y);
 	double penalty = 0;
 	// penalty = CATVOIDANCE / (dist_from_catline + 1); // +1 to avoid div by 0
-	//  only add penalty if mouse is within AHHHH units of nearest cat
-	if (closest_cat_distance(x, y) < AHHHH)
+	//   only add penalty if mouse is within AHHHH units of nearest cat
+	if (closest_cat_distance(x, y) <= AHHHH)
 	{
 		penalty = CATVOIDANCE;
 	}
+	// heuristic 2, for each cat, get distance from x,y to cat(chebyshev) and add 1 / (dist + 1) to penalty
+	// for (int cat_idx = 0; cat_idx < n_cats; cat_idx++)
+	// {
+	// 	penalty += 1 / (fmax(abs(x - cats[cat_idx][0]), abs(y - cats[cat_idx][1])) + 1);
+	// }
 
-	printf("Dist from cheese line: %.2f, Dist from cat line: %.2f\n, Dist from closest cat: %.2f, Dist from closest cheese: %.2f", dist_from_cheeseline, dist_from_catline, closest_cat_distance(x, y), closest_cheese_distance(x, y));
+	int heuristic1 = CHEESEATTRACTION * dist_from_cheeseline + penalty;
+	int heuristic2 = CHEESEATTRACTION * dist_from_cheeseline + (100 - (closest_cat_distance(x, y))) + penalty;
+
+	// only print if x,y is mouse location
+	if (x == mouse[0][0] && y == mouse[0][1])
+	{
+
+		printf("Dist from cheese line: %.2f, Dist from cat line: %.2f\n, Dist from closest cat: %.2f, Dist from closest cheese: %.2f, heuristic1: %d, heuristic2: %d\n", dist_from_cheeseline, dist_from_catline, closest_cat_distance(x, y), closest_cheese_distance(x, y), heuristic1, heuristic2);
+	}
 
 	// calculate heuristic cost, we want to minimize cost if close to cheese line and maximize cost if close to cat line
-	return CHEESEATTRACTION * dist_from_cheeseline + penalty; // +1 to avoid div by 0
+	return heuristic2; // +1 to avoid div by 0
 }
 
 double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheeses, int mouse_loc[1][2], int mode, double (*utility)(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int cats, int cheeses, int depth), int agentId, int depth, int maxDepth, double alpha, double beta)
