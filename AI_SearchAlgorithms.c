@@ -25,6 +25,7 @@
 #define NOTHING -1
 #define INT_MAX 10000
 #define CATVOIDANCE 1000
+#define CHEESEATTRACTION 2
 #define EDGEPENALTY 20
 /*************************************************************************
  * Functions you have to complete for this assignment start below
@@ -375,6 +376,82 @@ double cat_distance_sum(int x, int y)
 	return sum;
 }
 
+// find the cheese index of the closest cheese to (x,y)
+int closest_cheese_index(int x, int y)
+{
+	double min_dist = size_X + size_Y; // set as largest val possible
+	double curr = min_dist;
+	int index = -1;
+	for (int chs_idx = 0; chs_idx < n_cheese; chs_idx++)
+	{
+		curr = manhatten_distance(x, y, cheese[chs_idx][0], cheese[chs_idx][1]);
+		if (min_dist > curr)
+		{
+			min_dist = curr;
+			index = chs_idx;
+		}
+	}
+	return index;
+}
+
+// find the cat index of the closest cat to (x,y)
+int closest_cat_index(int x, int y)
+{
+	double min_dist = size_X + size_Y; // set as largest val possible
+	double curr = min_dist;
+	int index = -1;
+	for (int cat_idx = 0; cat_idx < n_cats; cat_idx++)
+	{
+		curr = manhatten_distance(x, y, cats[cat_idx][0], cats[cat_idx][1]);
+		if (min_dist > curr)
+		{
+			min_dist = curr;
+			index = cat_idx;
+		}
+	}
+	return index;
+}
+
+// give x1,y1, x2,y2, x3,y3, create a line from x1,y1 to x2,y2 then get the distance of x3,y3 to the closest point on the line
+double dist_from_line(int x1, int y1, int x2, int y2, int x3, int y3)
+{
+	// check that x3,y3 is between x1,y1 and x2,y2, otherwise assign same value as corner
+	if ((x3 <= fmin(x1, x2)) || (x3 >= fmax(x1, x2)) || (y3 <= fmin(y1, y2)) || (y3 >= fmax(y1, y2)))
+	{
+		// calculate distance from (x2,y1) to the closest point on the line from (x1,y1) to (x2,y2) and return it
+		//  get slope of line and intercept
+		double m = (double)(y2 - y1) / (double)(x2 - x1);
+		double b = y1 - m * x1;
+		// get distance from point to line, so we have Ax + By + C = 0 that is, mx - y + b = 0
+		double A = m;
+		double B = -1.0;
+		double C = b;
+		// get the shortest distance from point x2,y1 to line
+		double dist = fabs(A * x2 + B * y1 + C) / sqrt(A * A + B * B);
+
+		return dist; // not between, return max (dist of corner)
+	}
+
+	// get slope of line and intercept
+	double m = (double)(y2 - y1) / (double)(x2 - x1);
+	double b = y1 - m * x1;
+	// get distance from point to line, so we have Ax + By + C = 0 that is, mx - y + b = 0
+	double A = m;
+	double B = -1.0;
+	double C = b;
+	// get the shortest distance from point x3,y3 to line
+	double dist = fabs(A * x3 + B * y3 + C) / sqrt(A * A + B * B);
+	return dist;
+
+	// AI came up with this, i think its right actually i did more steps for no reason
+	// double A = y2 - y1;
+	// double B = x1 - x2;
+	// double C = x2 * y1 - x1 * y2;
+
+	// double dist = fabs(A * x3 + B * y3 + C) / sqrt(A * A + B * B);
+	// return dist;
+}
+
 int H_cost_nokitty(int x, int y)
 {
 	/*
@@ -414,21 +491,27 @@ int H_cost_nokitty(int x, int y)
 	// printf("Cheese score: %.2f, Cat score: %.2f, Penalty: %d\n", cheese_score, cat_score, penalty);
 	// return dist_to_closest_cheese + penalty;
 
-	// older version simpler
-	printf("Calculating H_cost_nokitty for (%d, %d)\n", x, y);
-	double dist_to_closest_cheese = closest_cheese_distance(x, y);
-	double dist_to_closest_cat = closest_cat_distance(x, y);
+	// new attempt
 
-	// if dist to cat is closer than dist to cheese, add penalty to heuristic
-	int penalty = 0;
-	if (dist_to_closest_cat < dist_to_closest_cheese)
+	// get distance to line from mouse to cheese, and how far x,y is from that line
+	int closest_cheese = closest_cheese_index(mouse[0][0], mouse[0][1]);
+	double dist_from_cheeseline = dist_from_line(mouse[0][0], mouse[0][1], cheese[closest_cheese][0], cheese[closest_cheese][1], x, y);
+
+	// get distance to line from mouse to closest cat, and how far x,y is from that line
+	int closest_cat = closest_cat_index(mouse[0][0], mouse[0][1]);
+	double dist_from_catline = dist_from_line(mouse[0][0], mouse[0][1], cats[closest_cat][0], cats[closest_cat][1], x, y);
+	double penalty = 0;
+
+	// only add penalty if mouse is within 10 units of nearest cat
+	if (closest_cat_distance(x, y) < 10)
 	{
-		// closer cat = higher penalty, might need to increase from 80 for smarter cats
-		penalty = (int)(10000.0 / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
+		penalty = CATVOIDANCE / (dist_from_catline + 1); // +1 to avoid div by 0
 	}
-	printf("Cheese dist: %.2f, Cat dist: %.2f, Penalty: %d\n", dist_to_closest_cheese, dist_to_closest_cat, penalty);
 
-	return (int)dist_to_closest_cheese + penalty;
+	printf("Dist from cheese line: %.2f, Dist from cat line: %.2f\n, Dist from closest cat: %.2f, Dist from closest cheese: %.2f", dist_from_cheeseline, dist_from_catline, closest_cat_distance(x, y), closest_cheese_distance(x, y));
+
+	// calculate heuristic cost, we want to minimize cost if close to cheese line and maximize cost if close to cat line
+	return CHEESEATTRACTION * dist_from_cheeseline + penalty; // +1 to avoid div by 0
 }
 
 double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheeses, int mouse_loc[1][2], int mode, double (*utility)(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int cats, int cheeses, int depth), int agentId, int depth, int maxDepth, double alpha, double beta)

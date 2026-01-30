@@ -90,7 +90,9 @@ int checkForCheese(int x, int y);
 int checkForCats(int x, int y);
 int getIndexFromXY(int x, int y);
 bool checkForTerminalState(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses);
-
+int closest_cheese_index(int x, int y);
+int closest_cat_index(int x, int y);
+double dist_from_line(int x1, int y1, int x2, int y2, int x3, int y3);
 // Priority Queue functions
 /* Returns the node with minimum priority in minheap 'heap'.
  * Precondition: heap is non-empty
