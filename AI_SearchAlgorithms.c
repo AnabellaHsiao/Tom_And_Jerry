@@ -24,14 +24,15 @@
 #define ROOT_INDEX 0
 #define NOTHING -1
 #define INT_MAX 10000
-#define CATVOIDANCE 100
+#define CATVOIDANCE 150
 #define EDGEPENALTY 20
 /*************************************************************************
  * Functions you have to complete for this assignment start below
  * this commend block
  * **********************************************************************/
 
-void Heuristic_Search(int (*heuristic)(int x, int y))
+void 
+Heuristic_Search(int (*heuristic)(int x, int y))
 {
 
 	/*
@@ -178,6 +179,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 
 	int goal = -1;
 	int grid_counter = 0;
+	cheese_ignore=-1;
 	// construct priority queue via minheap, Q for minheap prio queue, d for shortest distances, p for predecessor in shortest path
 	MinHeap *Q = newHeap(graph_size);
 	// keep an array of expanded nodes to fill - initialize to avoid garbage values
@@ -238,6 +240,7 @@ void Heuristic_Search(int (*heuristic)(int x, int y))
 					neighbor_x -= 1;
 				}
 				int neighbor_id = getIndexFromXY(neighbor_x, neighbor_y);
+				
 				int tentative_distance = current.distance + 1 + heuristic(neighbor_x, neighbor_y);
 				if (decreaseDistance(Q, neighbor_id, tentative_distance))
 				{
@@ -321,7 +324,7 @@ double euclidean_distance(int x1, int y1, int x2, int y2)
 	return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
-// closest cat to (x,y)
+// closest cat to (x,y)(mouse)
 double closest_cat_distance(int x, int y)
 {
 	double min_dist = size_X + size_Y; // set as largest val possible
@@ -337,7 +340,7 @@ double closest_cat_distance(int x, int y)
 	return min_dist;
 }
 
-// closest cheese to (x,y)
+// closest cheese to (x,y)(mouse)
 double closest_cheese_distance(int x, int y)
 {
 	double min_dist = size_X + size_Y; // set as largest val possible
@@ -345,12 +348,73 @@ double closest_cheese_distance(int x, int y)
 	for (int chs_idx = 0; chs_idx < n_cheese; chs_idx++)
 	{
 		curr = manhatten_distance(x, y, cheese[chs_idx][0], cheese[chs_idx][1]);
-		if (min_dist > curr)
+		if (min_dist > curr && chs_idx!=cheese_ignore)
 		{
 			min_dist = curr;
 		}
 	}
 	return min_dist;
+}
+//index of closest kitten to mouse at (x,y)
+void closest_kitten_to_mouse_idx(int x, int y, int* idx)
+{
+	double min_dist = size_X + size_Y; // set as largest val possible
+	double curr = min_dist;
+	idx[0] = -1;
+	idx[1] = -1;
+	for (int cat_idx = 0; cat_idx < n_cats; cat_idx++)
+	{
+		curr = manhatten_distance(x, y, cats[cat_idx][0], cats[cat_idx][1]);
+		if (min_dist > curr)
+		{
+			min_dist = curr;
+			idx[0] = cats[cat_idx][0];
+			idx[1] = cats[cat_idx][1];
+		}
+			
+		
+	}
+	printf("line 379 closest kitten idx: (%d, %d)\n", idx[0], idx[1]);
+}
+void closest_cheeese_to_mouse_idx(int x, int y, int* idx)
+{
+	double min_dist = size_X + size_Y; // set as largest val possible
+	double curr = min_dist;
+	idx[0] = -1;
+	idx[1] = -1;
+	
+	for (int chs_idx = 0; chs_idx < n_cheese; chs_idx++)
+	{
+		curr = manhatten_distance(x, y, cheese[chs_idx][0], cheese[chs_idx][1]);
+		if (min_dist > curr && (cheese_ignore==-1 || chs_idx!=cheese_ignore))
+		{
+			min_dist = curr;
+			idx[0] = cheese[chs_idx][0];
+			idx[1] = cheese[chs_idx][1];
+			
+		}
+			
+		
+	}
+	
+	
+	printf("line 394 closest cheese idx: (%d, %d)\n", idx[0], idx[1]);
+}
+
+// closest kitten to cheese at (x,y)
+double closest_kitten_to_cheese_distance(int x, int y)
+{
+
+	int kitten_idx[2];
+	closest_kitten_to_mouse_idx(x, y, kitten_idx);
+	// printf("Kitten idx: (%d, %d)\n", kitten_idx[0], kitten_idx[1]);
+	int cheese_idx[2];
+	closest_cheeese_to_mouse_idx(x, y, cheese_idx);
+	// printf("Cheese idx: (%d, %d)\n", cheese_idx[0], cheese_idx[1]);
+	double dist=manhatten_distance(kitten_idx[0], kitten_idx[1], cheese_idx[0], cheese_idx[1]);
+
+	// printf("line 405 kitten vs cheese dist: %.2f\n", dist);
+	return dist;
 }
 
 // cheese score of (x,y)
@@ -397,21 +461,37 @@ int H_cost_nokitty(int x, int y)
 
 	double cheese_score = cheese_distance_sum(x, y);
 	double cat_score = cheese_score + cat_distance_sum(x, y);
+	double dist_cat_cheese = closest_kitten_to_cheese_distance(x, y);
+	printf("-------cheese to ignore --------- is %d\n", cheese_ignore);
 
 	// if dist to cat is closer than dist to cheese, add penalty to heuristic
 	int penalty = 0;
-	if (dist_to_closest_cat < dist_to_closest_cheese)
+	if (dist_cat_cheese < dist_to_closest_cheese)
 	{
 		// closer cat = higher penalty, might need to increase from 80 for smarter cats
-		penalty = (int)(CATVOIDANCE / (dist_to_closest_cat + 1)); // +1 to avoid div by 0
+		//printf("Case1 \n");
+		penalty = (int)(CATVOIDANCE ); // +1 to avoid div by 0
 	}
+	//printf(" Cat dist to cheese: %.2f\n", dist_cat_cheese);
+	if (dist_to_closest_cat < 10.0)
+	{
+		//printf("Case2 \n");
+		//printf("Kitten is very close to cheese! Cat dist to cheese: %.2f\n", dist_cat_cheese);
+		return 200;
+		// extra penalty if a kitten is nearby
+	}
+	// if (mouse[0][0]== && mouse[0][1]==y)
+	// {
+	// 	printf("CASE3 \n");
+	// 	closest_kitten_to_cheese_distance(x, y);
+	// }
 
 	// add penalty proportional to closeness to edge of map, to avoid getting cornered
-	penalty += (int)(EDGEPENALTY / (fmin(fmin(x, size_X - x - 1), fmin(y, size_Y - y - 1)) + 1));
+	penalty += (int)EDGEPENALTY;
 
-	printf("Cheese dist: %.2f, Cat dist: %.2f, Penalty: %d\n", dist_to_closest_cheese, dist_to_closest_cat, penalty);
+	//printf("Cheese dist: %.2f, Cat dist: %.2f, Penalty: %d\n", dist_to_closest_cheese, dist_to_closest_cat, penalty);
 	// print cheese and cat score
-	printf("Cheese score: %.2f, Cat score: %.2f, Penalty: %d\n", cheese_score, cat_score, penalty);
+	//printf("Cheese score: %.2f, Cat score: %.2f, Penalty: %d\n", cheese_score, cat_score, penalty);
 	return dist_to_closest_cheese + penalty;
 }
 

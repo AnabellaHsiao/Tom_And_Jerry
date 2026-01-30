@@ -77,7 +77,7 @@ int s_mode;									  // Search mode  (0 - A*, 1 - A* no-kitty, 2 - MiniMax, 3 -
 int md;										  // maximum search depth for MiniMax
 double cattitude;							  // Cat smartness factor in [0,1]
 int windowID;								  // OpenGL Window ID
-
+int cheese_ignore;						  // Cheese to ignore for no-kitty search mode
 // ***********  FUNCTION HEADER DECLARATIONS ****************
 // Search code functions
 void findPath(int start_x, int start_y, int (*goalCheck)(int x, int y));
