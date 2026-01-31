@@ -793,6 +793,101 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 	// Path[0][1] = mouse_loc[0][1];
 	// return (0.0);
 }
+// double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses, int depth)
+// { //i am grabbing the two cheese that are closest to the mouse
+// 	//after that i am calculating the distance from the mouse to those 2 cheese 
+// 	//and for the two cheese i am calculating the distance of the midpoint between the mouse and cheese to each cat
+// 	//finally the utility is the summation of the cat distances - mouse to cheese distances
+// 	int cheese_index= closest_cheese_index(mouse_loc[0][0], mouse_loc[0][1]);
+// 	double dist=graph_size;
+// 	double new_dist;
+// 	int second_cheese_idx=-1;
+	//find the second closest cheese
+	// for (int i=0;i<10;i++){
+	// 	if (cheese_index != i){
+	// 		new_dist = manhatten_distance(mouse_loc[0][0], mouse_loc[0][1], cheese_loc[i][0], cheese_loc[i][1]);
+	// 		if (new_dist < dist){
+	// 			dist = new_dist;
+	// 			second_cheese_idx = i;
+	// 		}
+	// 	}
+	// }
+	// //now we got the two cheese index, calculate the total distance from cat to the 2 midpoints(cheese to mouse)
+	// double total_cheese_cat_dist=0.0;
+	// for(int i=0;i<n_cats;i++){
+	// 	total_cheese_cat_dist+= manhatten_distance(cat_loc[i][0], cat_loc[i][1], (cheese_loc[cheese_index][0]+mouse_loc[0][0])/2, (cheese_loc[cheese_index][1]+mouse_loc[0][1])/2);
+	// 	total_cheese_cat_dist+= manhatten_distance(cat_loc[i][0], cat_loc[i][1], (int)(cheese_loc[second_cheese_idx][0]+mouse_loc[0][0])/2, (int)(cheese_loc[second_cheese_idx][1]+mouse_loc[0][1])/2);
+
+	// }
+	// double mouse_2cheese_dist=
+	// 	manhatten_distance(mouse_loc[0][0], mouse_loc[0][1], cheese_loc[cheese_index][0], cheese_loc[cheese_index][1])+
+	// 	manhatten_distance(mouse_loc[0][0], mouse_loc[0][1], cheese_loc[second_cheese_idx][0], cheese_loc[second_cheese_idx][1]);
+	
+	// return 20*(1/(total_cheese_cat_dist+1) )- mouse_2cheese_dist*10;
+
+
+
+
+
+//}
+// double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses, int depth)
+// {
+// 	/*
+// 	 This function computes and returns the utility value for a given game configuration.
+// 	 As discussed in lecture, this should return a positive value for configurations that are 'good'
+// 	 for the mouse, and a negative value for locations that are 'bad' for the mouse.
+
+// 	 How to define 'good' and 'bad' is up to you. Note that you can write a utility function
+// 	 that favours your mouse or favours the cats, but that would be a bad idea... (why?)
+
+// 	 Input arguments:
+
+// 	   cat_loc - Cat locations
+// 	   cheese_loc - Cheese locations
+// 	   mouse_loc - Mouse location
+// 	   cats - # of cats
+// 	   cheeses - # of cheeses
+// 	   depth - current search depth
+// 	   gr - The graph's adjacency list for the maze
+
+// 	   These arguments are as described in A1. Do have a look at your solution!
+// 	*/
+// 	double cheese_mouse_dist[10];
+// 	for(int i=0;i<ncheeses;i++){
+// 		// if cat eats mouse, return large negative value
+// 		if(cat_loc[i][0]==mouse_loc[0][0] && cat_loc[i][1]==mouse_loc[0][1]){
+// 			return -1000.0;
+// 		}
+// 		cheese_mouse_dist[i] = euclidean_distance(mouse_loc[0][0], mouse_loc[0][1], cheese_loc[i][0], cheese_loc[i][1]);
+// 	}
+// 	//want to calculate the midpoint of cheese with mouse
+// 	int cheese_mouse_mid[10][2];
+// 	for(int i=0;i<ncheeses;i++){
+// 		cheese_mouse_mid[i][0] = (int)(cheese_loc[i][0]+mouse_loc[0][0])/2;
+// 		cheese_mouse_mid[i][1] = (int)(cheese_loc[i][1]+mouse_loc[0][1])/2;
+// 	}
+// 	//each cat to cheese_mouse_mid
+// 	double cat_cheese_mouse_mid_dist[10][10];
+// 	for(int i=0;i<ncats;i++){
+// 		for(int j=0;j<ncheeses;j++){
+// 			cat_cheese_mouse_mid_dist[i][j] = euclidean_distance(cat_loc[i][0], cat_loc[i][1], cheese_mouse_mid[j][0], cheese_mouse_mid[j][1]);
+// 		}
+// 	}
+// 	//utility is the summation of cat_cheese_mouse_mid_dist - cheese_mouse_dist
+// 	double utility_value = 0.0;
+// 	for(int i=0;i<ncheeses;i++){
+// 		double min_cat_dist=0;
+// 		for(int j=0;j<ncats;j++){
+			
+// 			min_cat_dist += cat_cheese_mouse_mid_dist[j][i];
+			
+// 		}
+// 		utility_value += (min_cat_dist - cheese_mouse_dist[i]);
+// 	}
+
+// 	return utility_value;
+// }
+
 
 double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], int ncats, int ncheeses, int depth)
 {
@@ -832,7 +927,19 @@ double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], i
 			return -1000; // mouse eats cheese, good for mouse(min)
 		}
 	}
-	return 0; // neutral state
+	double dist_to_closest_cheese = closest_cheese_distance(mouse_loc[0][0], mouse_loc[0][1]);
+	double dist_to_closest_cat = closest_cat_distance(mouse_loc[0][0], mouse_loc[0][1]);
+
+	if(dist_to_closest_cat < dist_to_closest_cheese){
+		// bad state
+		return 100.0 *dist_to_closest_cheese; // want to minimize distance to cheese
+	}else if(dist_to_closest_cat > dist_to_closest_cheese){ 
+		// good state
+		return -100.0 *1/ dist_to_closest_cheese; // want to minimize distance
+	}else{
+		return 0.0;
+	}
+
 
 	// return 0; // <-- Evidently you will need to update this.
 }
