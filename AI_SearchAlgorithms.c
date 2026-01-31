@@ -717,6 +717,11 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 				}
 				int new_mouse_loc[1][2] = {{mouse_x, mouse_y}};
 				double util = MiniMax(cat_loc, ncats, cheese_loc, ncheeses, new_mouse_loc, mode, utility, 1, depth + 1, maxDepth, alpha, beta);
+				// update grid_values for mouse
+				if (agentId == 0)
+				{
+					grid_value[mouse_loc[0][0]][mouse_loc[0][1]] = util;
+				}
 				if (util < min_util)
 				{
 					min_util = util;
@@ -727,14 +732,15 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 						Path[depth][1] = mouse_y;
 					}
 				}
-				// alpha-beta pruning
+				// alpha-beta pruning. mouse is a min node so update beta when util less than beta, stop when alpha greater than beta
+				// only if in right mode
 				if (mode == 1)
 				{
 					if (min_util < beta)
 					{
 						beta = min_util;
 					}
-					if (beta <= alpha)
+					if (beta < alpha)
 					{
 						break; // beta cut-off
 					}
@@ -742,10 +748,10 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 			}
 		}
 		// update grid_values for mouse
-		if (agentId == 0)
-		{
-			grid_value[mouse_loc[0][0]][mouse_loc[0][1]] = min_util;
-		}
+		// if (agentId == 0)
+		// {
+		// 	grid_value[mouse_loc[0][0]][mouse_loc[0][1]] = min_util;
+		// }
 		return min_util;
 	}
 
@@ -796,7 +802,7 @@ double MiniMax(int cat_loc[10][2], int ncats, int cheese_loc[10][2], int ncheese
 					}
 					if (beta <= alpha)
 					{
-						break; // alpha cut-off
+						break;
 					}
 				}
 			}
