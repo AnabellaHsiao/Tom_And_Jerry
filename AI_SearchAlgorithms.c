@@ -850,9 +850,47 @@ double utility(int cat_loc[10][2], int cheese_loc[10][2], int mouse_loc[1][2], i
 			return -1000; // mouse eats cheese, good for mouse(min)
 		}
 	}
-	return 0; // neutral state
+	// return 0; // neutral state
 
-	// return 0; // <-- Evidently you will need to update this.
+	//  use heuristic function as utility: closer to cheese = lower utility, closer to cat = higher utility
+	double dist_to_closest_cheese = closest_cheese_distance(mouse_loc[0][0], mouse_loc[0][1]);
+	double dist_to_closest_cat = closest_cat_distance(mouse_loc[0][0], mouse_loc[0][1]);
+	double utility_value = dist_to_closest_cheese - 1 / ((dist_to_closest_cat) * (dist_to_closest_cat)); // closer to cheese = lower utility, closer to cat = higher utility
+	// if there is a wall between mouse and direction of cheese, add penalty to utility
+	int closest_cheese = closest_cheese_index(mouse_loc[0][0], mouse_loc[0][1]);
+	if (mouse_loc[0][0] < cheese_loc[closest_cheese][0])
+	{
+		// cheese is to the right
+		if (Graph[getIndexFromXY(mouse_loc[0][0], mouse_loc[0][1])][1] == 0)
+		{
+			utility_value += 5; // add penalty
+		}
+	}
+	else if (mouse_loc[0][0] > cheese_loc[closest_cheese][0])
+	{
+		// cheese is to the left
+		if (Graph[getIndexFromXY(mouse_loc[0][0], mouse_loc[0][1])][3] == 0)
+		{
+			utility_value += 5; // add penalty
+		}
+	}
+	if (mouse_loc[0][1] < cheese_loc[closest_cheese][1])
+	{
+		// cheese is below
+		if (Graph[getIndexFromXY(mouse_loc[0][0], mouse_loc[0][1])][2] == 0)
+		{
+			utility_value += 5; // add penalty
+		}
+	}
+	else if (mouse_loc[0][1] > cheese_loc[closest_cheese][1])
+	{
+		// cheese is above
+		if (Graph[getIndexFromXY(mouse_loc[0][0], mouse_loc[0][1])][0] == 0)
+		{
+			utility_value += 5; // add penalty
+		}
+	}
+	return utility_value;
 }
 
 // Helper functions
